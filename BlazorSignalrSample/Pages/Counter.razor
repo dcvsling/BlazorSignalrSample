@@ -1,0 +1,26 @@
+﻿@page "/counter"
+@inject NavigationManager NavigationManager
+
+<h1>Counter</h1>
+<p>connection is @(_hubConnection?.State.ToString() ?? null)</p>
+<p>@Ticker</p>
+
+@code {
+    private HubConnection _hubConnection { get; set; }
+    public string Ticker { get; set; } = string.Empty;
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        base.OnAfterRenderAsync(firstRender);
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/ticker"))
+            .Build();
+        _hubConnection.On<string>("ticker", ticker =>
+        {
+            Ticker = ticker;
+            StateHasChanged();
+        });
+
+        return _hubConnection.StartAsync();
+    }
+}
